@@ -1,0 +1,43 @@
+spring:
+  profiles:
+    active: local
+  application.name: rest-api
+
+app:
+  fabric-config:
+    channel-name: mychannel
+    chaincode-name: drug
+    connections:
+      manufacturer:
+        msp-id: Org1MSP
+        crypto-base-path: /Users/zzkhan/go/src/github.com/zzkhan/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com
+        cert-path: users/User1@org1.example.com/msp/signcerts
+        keystore-path: users/User1@org1.example.com/msp/keystore
+        tls-cert-path: peers/peer0.org1.example.com/tls/ca.crt
+        peer-endpoint: localhost:7051
+        override-auth: peer0.org1.example.com
+      transporter:
+        msp-id: Org2MSP
+        crypto-base-path: /Users/zzkhan/go/src/github.com/zzkhan/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com
+        cert-path: users/User1@org2.example.com/msp/signcerts
+        keystore-path: users/User1@org2.example.com/msp/keystore
+        tls-cert-path: peers/peer0.org2.example.com/tls/ca.crt
+        peer-endpoint: localhost:9051
+        override-auth: peer0.org2.example.com
+      distributor:
+        msp-id: Org3MSP
+        crypto-base-path: /Users/zzkhan/go/src/github.com/zzkhan/fabric-samples/test-network/organizations/peerOrganizations/org3.example.com
+        cert-path: users/User1@org3.example.com/msp/signcerts
+        keystore-path: users/User1@org3.example.com/msp/keystore
+        tls-cert-path: peers/peer0.org3.example.com/tls/ca.crt
+        peer-endpoint: localhost:11051
+        override-auth: peer0.org3.example.com
+      pharmacy:
+        msp-id: Org4MSP
+        crypto-base-path: /Users/zzkhan/go/src/github.com/zzkhan/fabric-samples/test-network/organizations/peerOrganizations/org4.example.com
+        cert-path: users/User1@org4.example.com/msp/signcerts
+        keystore-path: users/User1@org4.example.com/msp/keystore
+        tls-cert-path: peers/peer0.org4.example.com/tls/ca.crt
+        peer-endpoint: localhost:13051
+        override-auth: peer0.org4.example.com
+

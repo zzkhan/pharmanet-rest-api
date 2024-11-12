@@ -6,6 +6,7 @@ import com.pharma.adapter.DrugVerificationOutcomeAdapter;
 import com.pharma.rest.model.Challenges;
 import com.pharma.rest.model.Crp;
 import com.pharma.rest.model.DrugVerificationOutcome;
+import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.fabric.client.CommitException;
 import org.hyperledger.fabric.client.CommitStatusException;
 import org.hyperledger.fabric.client.EndorseException;
@@ -15,6 +16,7 @@ import org.hyperledger.fabric.client.SubmitException;
 
 import java.util.List;
 
+@Slf4j
 public class DrugVerificationService extends BlockChainService {
   public DrugVerificationService(Gateway gateway) {
     super(gateway);
@@ -42,13 +44,13 @@ public class DrugVerificationService extends BlockChainService {
               .build()
               .endorse()
               .submit();
-    } catch (SubmitException e) {
-      throw new RuntimeException(e);
     } catch (CommitStatusException e) {
       throw new RuntimeException(e);
     } catch (CommitException e) {
       throw new RuntimeException(e);
     } catch (EndorseException e) {
+      throw new RuntimeException(e);
+    } catch (SubmitException e) {
       throw new RuntimeException(e);
     }
   }
@@ -81,13 +83,8 @@ public class DrugVerificationService extends BlockChainService {
               .endorse()
               .submit();
       return DrugVerificationOutcomeAdapter.fromBytes(bytes);
-    } catch (SubmitException e) {
-      throw new RuntimeException(e);
-    } catch (CommitStatusException e) {
-      throw new RuntimeException(e);
-    } catch (CommitException e) {
-      throw new RuntimeException(e);
-    } catch (EndorseException e) {
+    } catch (SubmitException | EndorseException | CommitStatusException | CommitException e) {
+      log.error("Error occurred during drug verification {}", e.getCause().getMessage());
       throw new RuntimeException(e);
     }
   }

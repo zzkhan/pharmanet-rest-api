@@ -1,10 +1,9 @@
 package com.pharma.config;
 
-import com.pharma.temp.AuthBuilder;
-import com.pharma.temp.FiscalAuthBuilder;
-import com.pharma.temp.FiscalAuthorisation;
-import com.pharma.temp.TransitAuthBuilder;
-import com.pharma.temp.TransitAuthorisation;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.pharma.interceptor.LoggingInterceptor;
 import io.grpc.Grpc;
 import io.grpc.ManagedChannel;
 import io.grpc.TlsChannelCredentials;
@@ -28,37 +27,40 @@ import java.security.cert.CertificateException;
 public class AppConfig {
 
   @Bean
+  public ObjectMapper objectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
+    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    return objectMapper;
+  }
+
+  @Bean
   public Gateway manufacturerGateway(AppProperties appProperties) throws Exception {
-    ConnectionDetails connectionDetails = appProperties.connections.get("manufacturer");
-    return Gateway.newInstance().identity(newIdentity(connectionDetails)).signer(newSigner(connectionDetails)).connection(newGrpcConnection(connectionDetails)).connect();
+    return createGateway(appProperties.connections.get("manufacturer"));
   }
 
   @Bean
   public Gateway distributorGateway(AppProperties appProperties) throws Exception {
-    ConnectionDetails connectionDetails = appProperties.connections.get("distributor");
-    return Gateway.newInstance().identity(newIdentity(connectionDetails)).signer(newSigner(connectionDetails)).connection(newGrpcConnection(connectionDetails)).connect();
+    return createGateway(appProperties.connections.get("distributor"));
   }
 
   @Bean
   public Gateway transporterGateway(AppProperties appProperties) throws Exception {
-    ConnectionDetails connectionDetails = appProperties.connections.get("transporter");
-    return Gateway.newInstance().identity(newIdentity(connectionDetails)).signer(newSigner(connectionDetails)).connection(newGrpcConnection(connectionDetails)).connect();
+    return createGateway(appProperties.connections.get("transporter"));
   }
 
   @Bean
   public Gateway pharmacyGateway(AppProperties appProperties) throws Exception {
-    ConnectionDetails connectionDetails = appProperties.connections.get("pharmacy");
-    return Gateway.newInstance().identity(newIdentity(connectionDetails)).signer(newSigner(connectionDetails)).connection(newGrpcConnection(connectionDetails)).connect();
+    return createGateway(appProperties.connections.get("pharmacy"));
   }
 
   @Bean
-  public AuthBuilder<TransitAuthorisation> transitAuthBuilder(){
-    return new TransitAuthBuilder();
+  public Gateway consumerGateway(AppProperties appProperties) throws Exception {
+    return createGateway(appProperties.connections.get("consumer"));
   }
 
-@Bean
-  public AuthBuilder<FiscalAuthorisation> fiscalAuthBuilder(){
-    return new FiscalAuthBuilder();
+  private static Gateway createGateway(ConnectionDetails connectionDetails) throws IOException, CertificateException, InvalidKeyException {
+    return Gateway.newInstance().identity(newIdentity(connectionDetails)).signer(newSigner(connectionDetails)).connection(newGrpcConnection(connectionDetails)).connect();
   }
 
   private static ManagedChannel newGrpcConnection(ConnectionDetails connectionDetails) throws IOException {
@@ -68,6 +70,7 @@ public class AppConfig {
             .build();
     return Grpc.newChannelBuilder(connectionDetails.getPeerEndpoint(), credentials)
             .overrideAuthority(connectionDetails.getOverrideAuth())
+            .intercept(new LoggingInterceptor())
             .build();
   }
 

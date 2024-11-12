@@ -1,28 +1,34 @@
 package com.pharma.service;
 
-import com.pharma.rest.model.PurchaseOrder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hyperledger.fabric.client.CommitException;
 import org.hyperledger.fabric.client.CommitStatusException;
 import org.hyperledger.fabric.client.EndorseException;
 import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.SubmitException;
 
-public class PoService extends BlockChainService {
-  public PoService(Gateway gateway) {
+public class RetailService extends BlockChainService {
+  private final ObjectMapper objectMapper;
+  public RetailService(Gateway gateway) {
     super(gateway);
+    this.objectMapper = new ObjectMapper();
   }
-  public static PoService instance(Gateway gateway) {
-    return new PoService(gateway);
+
+  public static RetailService instance(Gateway gateway) {
+    return new RetailService(gateway);
   }
-  public PurchaseOrder createPo(String seller, String drugName, int quantity) {
+
+  public String retailDrug(String drugName, String drugId) {
     try {
-      byte[] result = getContract()
-              .newProposal("drug-transfer:createDrugPO")
-              .addArguments(seller, drugName, String.valueOf(quantity))
+      byte[] retailRecordKey = getContract()
+              .newProposal("drug-retail:retailDrug")
+              .addArguments(drugName, drugId)
+              .setEndorsingOrganizations("Org1MSP","Org4MSP")
               .build()
               .endorse()
               .submit();
-      return PurchaseOrder.builder().seller(seller).drugName(drugName).build();
+
+      return new String(retailRecordKey);
     } catch (SubmitException e) {
       throw new RuntimeException(e);
     } catch (CommitStatusException e) {

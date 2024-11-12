@@ -27,6 +27,9 @@ dependencies {
 	implementation 'org.hyperledger.fabric:fabric-gateway:1.4.0'
 	compileOnly 'io.grpc:grpc-api:1.59.0'
 	runtimeOnly 'io.grpc:grpc-netty-shaded:1.59.0'
+	implementation 'com.google.zxing:core:3.4.1'
+	implementation 'com.google.zxing:javase:3.4.1'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
 
 tasks.named('test') {

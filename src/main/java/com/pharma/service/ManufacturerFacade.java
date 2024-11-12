@@ -1,5 +1,6 @@
 package com.pharma.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pharma.rest.model.CreateDrug;
 import com.pharma.rest.model.CreateShipment;
 import com.pharma.rest.model.Crp;
@@ -23,9 +24,9 @@ public class ManufacturerFacade {
     return manufacturerGateway;
   }
 
-  public ManufacturerFacade(Gateway manufacturerGateway) {
+  public ManufacturerFacade(Gateway manufacturerGateway, ObjectMapper objectMapper) {
     this.manufacturerGateway = manufacturerGateway;
-    this.drugService = DrugService.instance(manufacturerGateway);
+    this.drugService = DrugService.instance(manufacturerGateway, objectMapper);
     this.shipmentService = ShipmentService.instance(manufacturerGateway);
     this.drugVerificationService = DrugVerificationService.instance(manufacturerGateway);
   }
@@ -52,5 +53,9 @@ public class ManufacturerFacade {
     log.info("sharing verification CRPs for drug {}-{} to {}", drugName, tagId, assignee);
     List<Crp> assignedCrps = drugService.getAssignedCrps(drugName, tagId, assignee);
     drugVerificationService.shareAssignedCrps(drugName, tagId, assignee, assignedCrps);
+  }
+
+  public List<Crp> getAssignedCrps(String drugName, String tagId, String assignee) {
+    return drugService.getAssignedCrps(drugName, tagId, assignee);
   }
 }

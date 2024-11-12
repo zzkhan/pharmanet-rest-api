@@ -1,3 +1,6 @@
+server:
+  port: 8081
+
 spring:
   profiles:
     active: local
@@ -40,4 +43,12 @@ app:
         tls-cert-path: peers/peer0.org4.example.com/tls/ca.crt
         peer-endpoint: localhost:13051
         override-auth: peer0.org4.example.com
+      consumer:
+        msp-id: Org5MSP
+        crypto-base-path: /Users/zzkhan/go/src/github.com/zzkhan/fabric-samples/test-network/organizations/peerOrganizations/org5.example.com
+        cert-path: users/User1@org5.example.com/msp/signcerts
+        keystore-path: users/User1@org5.example.com/msp/keystore
+        tls-cert-path: peers/peer0.org5.example.com/tls/ca.crt
+        peer-endpoint: localhost:15051
+        override-auth: peer0.org5.example.com
 

@@ -2,7 +2,6 @@ package com.pharma.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pharma.rest.model.Challenges;
-import com.pharma.rest.model.CreateDrug;
 import com.pharma.rest.model.CreatePurchaseOrder;
 import com.pharma.rest.model.CreateShipment;
 import com.pharma.rest.model.Crp;
@@ -21,8 +20,8 @@ public class DistributorFacade {
   private final PoService poService;
   private final ShipmentService shipmentService;
 
-  public DistributorFacade(Gateway distributorGateway) {
-    drugService = DrugService.instance(distributorGateway);
+  public DistributorFacade(Gateway distributorGateway, ObjectMapper objectMapper) {
+    drugService = DrugService.instance(distributorGateway, objectMapper);
     poService = PoService.instance(distributorGateway);
     shipmentService = ShipmentService.instance(distributorGateway);
     drugVerificationService = DrugVerificationService.instance(distributorGateway);
@@ -31,14 +30,14 @@ public class DistributorFacade {
       return drugService.getAllDrugs();
   }
   public PurchaseOrder createPurchaseOrder(CreatePurchaseOrder createPurchaseOrder) {
-    return poService.createPo(createPurchaseOrder.getSeller(), createPurchaseOrder.getDrugName());
+    return poService.createPo(createPurchaseOrder.getSeller(), createPurchaseOrder.getDrugName(), createPurchaseOrder.getQuantity());
   }
   public void createShipment(CreateShipment createShipment) {
     shipmentService.createShipment(createShipment);
   }
 
   public List<Challenges> getDrugChallenges(String drugName, String tagId) {
-    return drugVerificationService.getDrugChallenges(drugName, tagId);
+      return drugVerificationService.getDrugChallenges(drugName, tagId);
   }
 
   public void submitVerificationCrps(String drugName, String tagId, List<Crp> crps) {

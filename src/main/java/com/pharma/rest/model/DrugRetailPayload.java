@@ -4,14 +4,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
-import java.time.LocalDateTime;
-
 @Data
-@Jacksonized
 @Builder
-public class CreateDrug {
-  String tagId;
+@Jacksonized
+public class DrugRetailPayload {
   String drugName;
-  LocalDateTime manufactureDate;
-  LocalDateTime expiryDate;
+  String tagId;
 }

@@ -6,7 +6,7 @@ import org.hyperledger.fabric.client.Gateway;
 import static com.pharma.service.Constants.CHAINCODE_NAME;
 import static com.pharma.service.Constants.CHANNEL_NAME;
 
-public class BlockChainService {
+public abstract class BlockChainService {
   protected final Gateway gateway;
 
   public BlockChainService(Gateway gateway) {

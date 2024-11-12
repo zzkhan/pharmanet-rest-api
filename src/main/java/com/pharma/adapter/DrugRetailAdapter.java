@@ -1,30 +1,29 @@
 package com.pharma.adapter;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.pharma.rest.model.Drug;
+import com.pharma.rest.model.DrugRetail;
 
 import java.io.IOException;
 
-public class DrugAdapter {
+public class DrugRetailAdapter {
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   static {
     objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
   }
 
-  public static Drug fromBytes(byte[] bytes) {
+  public static DrugRetail fromBytes(byte[] drugSaleBytes) {
     try {
-      return objectMapper.readValue(bytes, Drug.class);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+      DrugRetail drugRetail = objectMapper.readValue(drugSaleBytes, new TypeReference<>() {
+      });
+      return drugRetail;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
+
 }

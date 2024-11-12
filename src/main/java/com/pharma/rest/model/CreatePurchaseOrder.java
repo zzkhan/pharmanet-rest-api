@@ -10,4 +10,5 @@ import lombok.extern.jackson.Jacksonized;
 public class CreatePurchaseOrder {
   String seller;
   String drugName;
+  int quantity;
 }

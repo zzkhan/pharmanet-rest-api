@@ -7,9 +7,12 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pharma.adapter.DrugAdapter;
 import com.pharma.adapter.DrugCrpAdapter;
+import com.pharma.adapter.DrugSaleLookupAdapter;
 import com.pharma.rest.model.CreateDrug;
 import com.pharma.rest.model.Crp;
 import com.pharma.rest.model.Drug;
+import com.pharma.rest.model.DrugSaleLookupResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.fabric.client.CommitException;
 import org.hyperledger.fabric.client.CommitStatusException;
 import org.hyperledger.fabric.client.EndorseException;
@@ -20,29 +23,38 @@ import org.hyperledger.fabric.client.SubmitException;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 public class DrugService extends BlockChainService {
   private final ObjectMapper objectMapper;
-  public DrugService(Gateway gateway) {
+  public DrugService(Gateway gateway, ObjectMapper objectMapper) {
     super(gateway);
-    this.objectMapper = new ObjectMapper();
+    this.objectMapper = objectMapper;
   }
-  public static DrugService instance(Gateway gateway) {
-    return new DrugService(gateway);
+  public static DrugService instance(Gateway gateway, ObjectMapper objectMapper) {
+    return new DrugService(gateway, objectMapper);
   }
 
   public String getAllDrugs() throws Exception {
-    byte[] bytes = getContract().evaluateTransaction("drug-registration:ReadAllDrugs");
+    byte[] bytes = getContract().evaluateTransaction("pharmanet-queries:ReadAllDrugs");
     return new String(bytes);
   }
 
-  public Drug registerDrug(CreateDrug drug, List<Crp> crps) throws Exception {
-    byte[] bytes = getContract()
-            .newProposal("drug-registration:RegisterDrug")
-            .addArguments(objectMapper.writeValueAsString(drug))
-            .putTransient("crps", objectMapper.writeValueAsBytes(crps))
-            .build()
-            .endorse()
-            .submit();
+  public Drug registerDrug(CreateDrug drug, List<Crp> crps) {
+    byte[] bytes = new byte[0];
+    try {
+      bytes = getContract()
+              .newProposal("drug-registration:RegisterDrug")
+              .addArguments(objectMapper.writeValueAsString(drug))
+              .putTransient("crps", objectMapper.writeValueAsBytes(crps))
+              .build()
+              .endorse()
+              .submit();
+    } catch (SubmitException | CommitStatusException | CommitException | EndorseException e) {
+      log.info("Error registering drug {}", e.getMessage());
+      throw new RuntimeException(e);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
     return DrugAdapter.fromBytes(bytes);
   }
 
@@ -92,15 +104,8 @@ public class DrugService extends BlockChainService {
               .build()
               .endorse()
               .submit();
-    } catch (SubmitException e) {
-      throw new RuntimeException(e);
-    } catch (CommitStatusException e) {
-      throw new RuntimeException(e);
-    } catch (CommitException e) {
-      throw new RuntimeException(e);
-    } catch (EndorseException e) {
-      throw new RuntimeException(e);
-    } catch (JsonProcessingException e) {
+    } catch (SubmitException | CommitStatusException | CommitException | EndorseException | JsonProcessingException e) {
+      log.info("Error assigning challenges {}", e.getMessage());
       throw new RuntimeException(e);
     }
   }
@@ -109,6 +114,15 @@ public class DrugService extends BlockChainService {
     try {
       byte[] bytes = getContract().evaluateTransaction("drug-verification:getAssignedCrps", drugName, tagId, assignee);
       return DrugCrpAdapter.fromBytes(bytes);
+    } catch (GatewayException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public DrugSaleLookupResponse getByRetailKey(String retailKey) {
+    try {
+      byte[] bytes = getContract().evaluateTransaction("pharmanet-queries:verifyDrugSale", retailKey);
+      return DrugSaleLookupAdapter.fromBytes(bytes);
     } catch (GatewayException e) {
       throw new RuntimeException(e);
     }

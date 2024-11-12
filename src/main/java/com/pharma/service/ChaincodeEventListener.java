@@ -3,13 +3,11 @@ package com.pharma.service;
 import com.pharma.adapter.DrugShipmentAdapter;
 import com.pharma.adapter.PharmaEventAdapter;
 import com.pharma.rest.model.DrugVerificationSubmissionEvent;
-import com.pharma.rest.model.Shipment;
 import io.grpc.Status;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.hyperledger.fabric.client.ChaincodeEvent;
 import org.hyperledger.fabric.client.CloseableIterator;
-import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.GatewayRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,7 +26,7 @@ public class ChaincodeEventListener {
 
   public ChaincodeEventListener(ManufacturerFacade manufacturerFacade) {
     this.manufacturerFacade = manufacturerFacade;
-    this.executorService = Executors.newSingleThreadExecutor();
+    this.executorService = Executors.newFixedThreadPool(10);
   }
 
   @PostConstruct
@@ -54,11 +52,15 @@ public class ChaincodeEventListener {
   private void processEvent(ChaincodeEvent event) {
     try {
       if (event.getEventName().equals("DRUG-SHIPMENT-DELIVERED")) {
-        Shipment shipment = DrugShipmentAdapter.fromBytes(event.getPayload());
-        manufacturerFacade.assignCrps(shipment.getDrugName(), shipment.getLineItems().get(0), shipment.getBuyer());
+        var shipment = DrugShipmentAdapter.fromBytes(event.getPayload());
+        shipment
+                .getLineItems()
+                .forEach(tagId -> manufacturerFacade.assignCrps(shipment.getDrugName(), tagId, shipment.getBuyer()));
       } else if (event.getEventName().equals("DRUG-VERIFICATION-CRP-SUBMITTED")) {
-        DrugVerificationSubmissionEvent verificationSubmissionEvent = PharmaEventAdapter.fromBytes(event.getPayload(), DrugVerificationSubmissionEvent.class);
-        manufacturerFacade.shareAssignedCrps(verificationSubmissionEvent.getDrugName(), verificationSubmissionEvent.getTagId(), verificationSubmissionEvent.getSubmitter());
+        var submissionEvent = PharmaEventAdapter.fromBytes(event.getPayload(), DrugVerificationSubmissionEvent.class);
+        manufacturerFacade.shareAssignedCrps(submissionEvent.getDrugName(),
+                submissionEvent.getTagId(),
+                submissionEvent.getSubmitter());
       } else {
         log.info("NO OP on event {}", event.getEventName());
       }
